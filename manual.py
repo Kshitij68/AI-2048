@@ -1,5 +1,6 @@
 import time
 import numpy as np
+import pygame
 import os
 
 from utils import get_logger
@@ -8,7 +9,7 @@ logger = get_logger("2048")
 class Bot:
 
 
-    #TODO: Try out a convulational neural network optimizer
+    #TODO: Try out a CNN
 
     def __init__(self,name):
         self.name = name
@@ -57,7 +58,14 @@ class Bot:
         output = np.add(np.dot(l3,self.network[3]['weights']), self.network[3]['biases'])
         output = np.array([max(value,0) for value in output])
 
-        return output
+        output = np.argmax(output)
+        if output == 0:
+            return pygame.K_UP
+        elif output == 1:
+            return pygame.K_LEFT
+        elif output == 2:
+            return pygame.K_DOWN
+        return pygame.K_RIGHT
 
     def mutate_nn(self):
 
@@ -71,22 +79,6 @@ class Bot:
                     if self.mutation_chance >= np.random.random():
                         i = np.random.random()
 
-# class Game:
-#
-#     #TODO: The tiles are initialized to zero. This needs to be changed I guess
-#     def __init__(self):
-#         self.matrix = np.zeros((4, 4))
-#
-#     def is_game_over(self,move):
-#         if move == 'up'
-#
-#         elif move == 'down':
-#
-#         elif move == 'left':
-#
-#         else:
-#
-#     def update_matrix(self,move):
 
 class Optimizer:
 

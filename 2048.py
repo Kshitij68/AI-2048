@@ -331,18 +331,6 @@ class Bot:
         print('The keypress arguments are {}. The highest value is for {}'.format(keypress[0],np.argmax(keypress,1)))
         return np.argmax(keypress,1)
 
-
-        # with tf.Session() as sess:
-        #     start = time.time()
-        #     sess.run(tf.initialize_all_variables())
-        #     end = time.time()
-        #     lag = float(end - start)
-        #     writeToLog("Returning data: " + str(lag))
-        #     writeToGenome_1(str(sess.run(tf.argmax(keypress, 1))))
-        #     writeToGenome_2(str(sess.run(keypress)))
-        #     return sess.run(tf.argmax(keypress, 1))
-
-
 program = Controller()
 program.loadPage()
 program.main()
