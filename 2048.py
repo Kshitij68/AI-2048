@@ -10,6 +10,7 @@ except ImportError:
     from tkinter import *
 
 
+
 root = Tk()
 
 input_display_title = LabelFrame(root, text="Network Inputs", bg="#191919", fg="white")
@@ -160,6 +161,7 @@ class Controller:
                     writeToGame(score)
 
                     tiles = self.loadTiles()
+                    print(tiles)
                     move = bot_x.run_neural_network(tiles)
                     if move == [0]:
                         main.send_keys(Keys.ARROW_UP)
