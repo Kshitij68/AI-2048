@@ -4,19 +4,29 @@ import random
 import sys
 from repos.colours import Colors
 from pygame.locals import QUIT,KEYDOWN
+from utils import get_logger
 
+logger = get_logger("GAME")
+
+# TODO: Add option for BOT vs Human
+# TODO: Add option for visual display vs non-visual display
 
 class Game:
 
-    def __init__(self,loaded_game = False):
+    def __init__(self,loaded_game = False,show = True, bot=True):
+        self.show = show
+        self.bot = bot
         self.total_points = 0
-        self.initial_score = 2
         self.board_size = 4
+
         pygame.init()
-        self.surface = pygame.display.set_mode((500, 500), 1, 32)
-        pygame.display.set_caption("2048")
-        self.myfont = pygame.font.SysFont("monospace", 25)
-        self.scorefont = pygame.font.SysFont("monospace", 50)
+        if not bot and not show:
+            raise ValueError("A human cannot operate without the visual screen")
+        if self.show:
+            self.surface = pygame.display.set_mode((500, 500), 1, 32)
+            pygame.display.set_caption("2048")
+            self.myfont = pygame.font.SysFont("monospace", 25)
+            self.scorefont = pygame.font.SysFont("monospace", 50)
 
         if not loaded_game:
             self.tiles = np.zeros((4, 4),dtype=int)
@@ -27,9 +37,11 @@ class Game:
 
         self.place_random_tile()
         self.place_random_tile()
-        self.show_matrix()
+
+        if self.show:
+            self.show_matrix()
         self.undo = list()
-        print('----')
+
     def show_matrix(self):
         self.surface.fill(Colors.BLACK)
 
@@ -131,7 +143,7 @@ class Game:
                     pass
         return False
 
-    def main(self):
+    def human_player(self):
         while True:
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -148,19 +160,45 @@ class Game:
 
                             self.move_tiles()
                             self.merge_tiles()
-                            self.place_random_tile()
-
+                            try:
+                                self.place_random_tile()
+                            except IndexError:
+                                pass
 
                             for j in range((4-rotations) % 4):
                                 self.rotate_matrix()
-
-                            self.show_matrix()
+                            if self.show:
+                                self.show_matrix()
+                            logger.info("Total score is {}".format(self.total_points))
 
                 else:
                     return self.total_points
-
             pygame.display.update()
 
+    def bot_simulation(self,key):
+        rotations = self.get_rotations(key)
+
+        for i in range(rotations):
+            self.rotate_matrix()
+
+        self.move_tiles()
+        self.merge_tiles()
+        try:
+            self.place_random_tile()
+        except IndexError:
+            pass
+        for j in range((4-rotations) % 4):
+            self.rotate_matrix()
+        if self.check_game_status():
+            return self.total_points, self.tiles
+        else:
+            return self.total_points, 500
+
+    def run(self,*args):
+        if self.bot:
+            return self.bot_simulation(key = args)
+        else:
+            self.human_player()
 
 if __name__=="__main__":
-    Game().main()
+    Game(show=True,bot=False).run()

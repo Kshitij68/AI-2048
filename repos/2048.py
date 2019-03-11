@@ -147,7 +147,7 @@ def mergeTiles():
                 tileMatrix[i][k] = tileMatrix[i][k] * 2
                 tileMatrix[i][k + 1] = 0
                 TOTAL_POINTS += tileMatrix[i][k]
-                moveTiles()
+#                moveTiles()
 
 
 def checkIfCanGo():
