@@ -6,10 +6,6 @@ from repos.colours import Colors
 from pygame.locals import QUIT,KEYDOWN
 from utils import get_logger
 
-logger = get_logger("GAME")
-
-# TODO: Add option for BOT vs Human
-# TODO: Add option for visual display vs non-visual display
 
 class Game:
 
@@ -18,6 +14,8 @@ class Game:
         self.bot = bot
         self.total_points = 0
         self.board_size = 4
+        self.logger = get_logger("GAME")
+        self.previous_tile = None
 
         pygame.init()
         if not bot and not show:
@@ -137,7 +135,7 @@ class Game:
                     pass
 
                 try:
-                    if self.tiles[i][j] == self.tiles[i-1][j]:
+                    if self.tiles[i][j] == self.tiles[i+1][j]:
                         return True
                 except IndexError:
                     pass
@@ -149,7 +147,6 @@ class Game:
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
-
                 if self.check_game_status():
                     if event.type == KEYDOWN:
                         if self.is_arrow(event.key):
@@ -160,39 +157,55 @@ class Game:
 
                             self.move_tiles()
                             self.merge_tiles()
-                            try:
-                                self.place_random_tile()
-                            except IndexError:
-                                pass
 
-                            for j in range((4-rotations) % 4):
+                            for j in range(4-rotations):
                                 self.rotate_matrix()
+
+                            if self.previous_tile is None or (self.previous_tile is not None and not np.array_equal(self.previous_tile,self.tiles)):
+                                try:
+                                    self.place_random_tile()
+                                    self.previous_tile = self.tiles.copy()
+                                except IndexError:
+                                    pass
+
                             if self.show:
                                 self.show_matrix()
-                            logger.info("Total score is {}".format(self.total_points))
+
+                            self.logger.info("Total score is {}".format(self.total_points))
 
                 else:
                     return self.total_points
             pygame.display.update()
 
     def bot_simulation(self,key):
-        rotations = self.get_rotations(key)
+        rotations = self.get_rotations(key[0])
 
         for i in range(rotations):
             self.rotate_matrix()
 
         self.move_tiles()
         self.merge_tiles()
-        try:
-            self.place_random_tile()
-        except IndexError:
-            pass
-        for j in range((4-rotations) % 4):
+
+        for j in range(4-rotations):
             self.rotate_matrix()
-        if self.check_game_status():
-            return self.total_points, self.tiles
+
+        if self.show:
+            self.show_matrix()
+            pygame.display.update()
+
+        if self.previous_tile is None or (
+                self.previous_tile is not None and not np.array_equal(self.previous_tile, self.tiles)):
+            try:
+                self.place_random_tile()
+                self.previous_tile = self.tiles.copy()
+            except IndexError:
+                return 300, np.amax(self.tiles)
         else:
-            return self.total_points, 500
+            return 300, np.amax(self.tiles)
+        if self.check_game_status():
+            return None
+        else:
+            return 500, np.amax(self.tiles)
 
     def run(self,*args):
         if self.bot:
@@ -200,5 +213,24 @@ class Game:
         else:
             self.human_player()
 
-if __name__=="__main__":
-    Game(show=True,bot=False).run()
+
+class HumanBot:
+
+    def __init__(self):
+        self.mapping = {0: pygame.K_UP, 1: pygame.K_LEFT, 2: pygame.K_DOWN, 3: pygame.K_RIGHT}
+
+    def run(self):
+        game = Game(show=False, bot=True)
+        for i in range(10):
+            print(game.tiles.transpose())
+            direction = int(input())
+            try:
+                direction = self.mapping[direction]
+            except KeyError:
+                raise ValueError("Please enter 0 for up, 1 for left, 2 for down, 3 for right")
+            game.run(direction)
+
+
+# if __name__== "__main__":
+# #    Game(show=True,bot=False).run()
+#     HumanBot().run()
