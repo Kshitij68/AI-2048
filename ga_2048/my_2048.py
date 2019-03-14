@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 import random
 import sys
-from repos.colours import Colors
+from ga_2048.colours import Colors
 from pygame.locals import QUIT,KEYDOWN
 from utils import get_logger
 
@@ -231,6 +231,6 @@ class HumanBot:
             game.run(direction)
 
 
-# if __name__== "__main__":
-# #    Game(show=True,bot=False).run()
-#     HumanBot().run()
+if __name__== "__main__":
+#    Game(show=True,bot=False).run()
+    HumanBot().run()

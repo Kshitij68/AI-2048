@@ -3,7 +3,7 @@ import pygame
 import time
 from utils import get_logger
 
-from repos.my_2048 import Game
+from ga_2048.my_2048 import Game
 
 
 class Bot:
@@ -109,6 +109,8 @@ class Optimizer:
                 time.sleep(0.1)
                 input_matrix = self.get_flat_tiles(game.tiles)
                 prediction = self.bots[index].predict_nn(input_matrix)
+                self.logger.info("Prediction received is {}".format(prediction))
+                time.sleep(5)
                 output = game.run(prediction[0])
                 if output is not None:
                     if output[0] == 300:

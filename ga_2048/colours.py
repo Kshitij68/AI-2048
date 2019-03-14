@@ -1,8 +1,3 @@
-# Colour file supporting 2048
-#
-# Lewis Deane
-# 22/12/2014
-
 class Colors:
 
 	BLACK = (0, 0, 0)
