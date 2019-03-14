@@ -4,7 +4,7 @@ import random
 import sys
 from ga_2048.colours import Colors
 from pygame.locals import QUIT,KEYDOWN
-from utils import get_logger
+from ga_2048.utils import get_logger,reverse_mapping
 
 
 class Game:
@@ -178,6 +178,7 @@ class Game:
             pygame.display.update()
 
     def bot_simulation(self,key):
+        self.logger.info("Running the key {}".format(reverse_mapping[key[0]]))
         rotations = self.get_rotations(key[0])
 
         for i in range(rotations):
@@ -189,23 +190,24 @@ class Game:
         for j in range(4-rotations):
             self.rotate_matrix()
 
-        if self.show:
-            self.show_matrix()
-            pygame.display.update()
-
         if self.previous_tile is None or (
                 self.previous_tile is not None and not np.array_equal(self.previous_tile, self.tiles)):
             try:
+                self.logger.info("Placing a random tile")
                 self.place_random_tile()
                 self.previous_tile = self.tiles.copy()
+
             except IndexError:
                 return 300, np.amax(self.tiles)
         else:
             return 300, np.amax(self.tiles)
-        if self.check_game_status():
-            return None
-        else:
+
+        if not self.check_game_status():
             return 500, np.amax(self.tiles)
+
+        if self.show:
+            self.show_matrix()
+            pygame.display.update()
 
     def run(self,*args):
         if self.bot:
@@ -220,17 +222,23 @@ class HumanBot:
         self.mapping = {0: pygame.K_UP, 1: pygame.K_LEFT, 2: pygame.K_DOWN, 3: pygame.K_RIGHT}
 
     def run(self):
-        game = Game(show=False, bot=True)
-        for i in range(10):
-            print(game.tiles.transpose())
-            direction = int(input())
+        game = Game(show=True, bot=True)
+        game.show_matrix()
+        pygame.display.update()
+        for i in range(1000):
+            try:
+                direction = int(input())
+            except ValueError:
+                raise ValueError("Invalid input")
+
             try:
                 direction = self.mapping[direction]
             except KeyError:
                 raise ValueError("Please enter 0 for up, 1 for left, 2 for down, 3 for right")
-            game.run(direction)
+            output = game.run(direction)
+            if output is not None:
+                break
 
 
 if __name__== "__main__":
-#    Game(show=True,bot=False).run()
     HumanBot().run()

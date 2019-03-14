@@ -1,10 +1,10 @@
 import numpy as np
 import pygame
 import time
-from utils import get_logger
+from ga_2048.utils import get_logger
 
 from ga_2048.my_2048 import Game
-
+from ga_2048.utils import reverse_mapping
 
 class Bot:
 
@@ -109,7 +109,8 @@ class Optimizer:
                 time.sleep(0.1)
                 input_matrix = self.get_flat_tiles(game.tiles)
                 prediction = self.bots[index].predict_nn(input_matrix)
-                self.logger.info("Prediction received is {}".format(prediction))
+                mapped_prediction = [reverse_mapping[value] for value in prediction]
+                self.logger.info("Prediction received is {}".format(mapped_prediction))
                 time.sleep(5)
                 output = game.run(prediction[0])
                 if output is not None:
