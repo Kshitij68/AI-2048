@@ -9,12 +9,13 @@ from ga_2048.utils import get_logger,reverse_mapping
 
 class Game:
 
-    def __init__(self,loaded_game = False,show = True, bot=True):
+    def __init__(self, loaded_game = False, show = True, bot=True, disable_logs = True):
         self.show = show
         self.bot = bot
         self.total_points = 0
         self.board_size = 4
         self.logger = get_logger("GAME")
+        self.logger.disabled = disable_logs
         self.previous_tile = None
 
         pygame.init()
@@ -190,6 +191,10 @@ class Game:
         for j in range(4-rotations):
             self.rotate_matrix()
 
+        if self.show:
+            self.show_matrix()
+            pygame.display.update()
+
         if self.previous_tile is None or (
                 self.previous_tile is not None and not np.array_equal(self.previous_tile, self.tiles)):
             try:
@@ -198,11 +203,19 @@ class Game:
                 self.previous_tile = self.tiles.copy()
 
             except IndexError:
+                self.logger.info("Invalid position")
                 return 300, np.amax(self.tiles)
         else:
+            self.logger.info("Invalid position")
             return 300, np.amax(self.tiles)
 
+        if self.show:
+            self.show_matrix()
+            pygame.display.update()
+
         if not self.check_game_status():
+            self.logger.info(self.tiles)
+            self.logger.info("Game over")
             return 500, np.amax(self.tiles)
 
         if self.show:
