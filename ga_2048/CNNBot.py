@@ -4,17 +4,18 @@ import pygame
 import tensorflow as tf
 from ga_2048.utils import get_logger
 
+
 # TODO: Add Asserts and test cases
 
 
 class CNNBot:
 
-    def __init__(self, name, matrix=None, disable_logs=True,mutation = 0.3,convolutions = 1,seed=None):
+    def __init__(self, name, parameters=None, disable_logs=True, mutation=0.3, convolutions=1, seed=None):
         self.seed = seed
         self.name = name
         self.mutation = mutation
         self.convolutions = convolutions
-        self.matrix = matrix
+        self.parameters = parameters
         self.logger = get_logger("CNN Bot")
         self.logger.disabled = disable_logs
         self.mapping = {0: pygame.K_UP,
@@ -33,37 +34,37 @@ class CNNBot:
         return tf.placeholder(tf.float32, [a, b, c, d])
 
     def generate_random_matrix(self):
-        matrix = np.zeros((2,2))
-        for a,row in enumerate(matrix):
-            for b,col in enumerate(matrix):
+        matrix = np.zeros((2, 2))
+        for a, row in enumerate(matrix):
+            for b, col in enumerate(matrix):
                 if self.seed:
-                    random.seed(self.seed+a+b)
+                    random.seed(self.seed + a + b)
                 matrix[a][b] = random.uniform(-1, 1)
-        return matrix.reshape(2,2,1,1)
+        return matrix.reshape(2, 2, 1, 1)
 
     def parameter_initialization(self):
         if self.convolutions == 2:
-            if self.matrix is None:
+            if self.parameters is None:
                 matrix_1 = self.generate_random_matrix()
                 matrix_2 = self.generate_random_matrix()
-                self.matrix = [matrix_1,matrix_2]
+                self.parameters = [matrix_1, matrix_2]
             else:
-                matrix_1 = self.matrix[0]
-                matrix_2 = self.matrix[1]
+                matrix_1 = self.parameters[0]
+                matrix_2 = self.parameters[1]
 
             W1 = tf.constant(matrix_1, dtype='float32')
 
             W2 = tf.constant(matrix_2, dtype='float32')
 
-            return {"W1": W1,'W2':W2}
+            return {"W1": W1, 'W2': W2}
 
         elif self.convolutions == 1:
 
-            if self.matrix is None:
+            if self.parameters is None:
                 matrix_1 = self.generate_random_matrix()
-                self.matrix = [matrix_1]
+                self.parameters = [matrix_1]
             else:
-                matrix_1 = self.matrix[0]
+                matrix_1 = self.parameters[0]
 
             W1 = tf.constant(matrix_1, dtype='float32')
 
@@ -95,27 +96,27 @@ class CNNBot:
         with tf.Session() as sess:
             X = self.create_placeholders(1, 4, 4, 1)
             parameters = self.parameter_initialization()
-            graph = self.forward_propogation(X,parameters)
+            graph = self.forward_propogation(X, parameters)
             output = sess.run(graph, {X: input_matrix})
-        output = [[index,value] for index,value in enumerate(output)]
+        output = [[index, value] for index, value in enumerate(output)]
         output.sort(key=lambda x: x[1], reverse=True)
         return [self.mapping[value[0]] for value in output]
 
     def mutate(self):
-        for a,convolution in enumerate(self.matrix):
-            for b,row in enumerate(convolution):
-                for c,col in enumerate(row):
+        for a, convolution in enumerate(self.parameters):
+            for b, row in enumerate(convolution):
+                for c, col in enumerate(row):
                     if self.mutation >= np.random.random():
                         self.logger.info("Mutating")
-                        self.matrix[a][b][c][0][0] = random.uniform(-1,1)
+                        self.parameters[a][b][c][0][0] = random.uniform(-1, 1)
 
     def show_matrix(self):
         if self.convolutions == 1:
             return [
-                self.matrix[0][0][0][0][0],
-                self.matrix[0][0][1][0][0],
-                self.matrix[0][1][0][0][0],
-                self.matrix[0][1][1][0][0],
+                self.parameters[0][0][0][0][0],
+                self.parameters[0][0][1][0][0],
+                self.parameters[0][1][0][0][0],
+                self.parameters[0][1][1][0][0],
             ]
         else:
             raise NotImplementedError()

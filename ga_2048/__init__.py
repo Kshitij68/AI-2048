@@ -1,5 +1,5 @@
-from .my_2048 import Game
-from .my_2048 import HumanBot
+from .simulator import Game
+from .simulator import HumanBot
 from .colours import Colors
 from .manual import Optimizer
 from .NNBot import NNBot

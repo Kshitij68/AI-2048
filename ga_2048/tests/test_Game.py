@@ -1,4 +1,4 @@
-from ga_2048.my_2048 import Game
+from ga_2048.simulator import Game
 import unittest
 import numpy as np
 
