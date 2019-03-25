@@ -8,14 +8,16 @@ from ga_2048.simulator import Game
 # TODO: The CNN has to become much faster to train fast
 # TODO: The model is broken for Neural Networks. Fix to make both work
 
+
 class Optimizer:
 
     def __init__(self, n_generations, n_children, convolutions=1, network='CNN',
-                 disable_game_logs= True, disable_optimizer_logs = True, disable_model_logs =True):
+                 disable_game_logs=True, disable_optimizer_logs=True, disable_model_logs=True):
 
         self.disable_game_logs = disable_game_logs
         self.disable_optimizer_logs = disable_optimizer_logs
         self.disable_model_logs = disable_model_logs
+
         self.network = network
         self.convolutions = convolutions
 
@@ -40,11 +42,11 @@ class Optimizer:
             (self.n_children - (self.survival_rate * self.n_children)) / (self.survival_rate * self.n_children))
         self.logger.info("Will be creating {} children per bot".format(self.new_children))
 
-    def create_bot(self,name,parameters = None):
+    def create_bot(self, name, parameters=None):
         if self.network == 'NN':
-            return NNBot(name=name, disable_logs=self.disable_model_logs,parameters=parameters)
+            return NNBot(name=name, disable_logs=self.disable_model_logs, parameters=parameters)
         elif self.network == 'CNN':
-            return CNNBot(name=name, disable_logs=self.disable_model_logs,parameters=parameters)
+            return CNNBot(name=name, disable_logs=self.disable_model_logs, parameters=parameters)
         else:
             raise ValueError("The current model only supports NN and CNN. Please pass 'NN' for Neural Network "
                              "architecture and 'CNN' for Convolution Neural Network based architecture ")
@@ -81,30 +83,27 @@ class Optimizer:
         bot_scores.sort(key=lambda x: x[1], reverse=True)
         return bot_scores
 
+    def create_new_bots(self, indexes):
+        indexes_params = [self.bots[i].parameters.copy() for i in indexes]
+        bot_index = 0
+        for param in indexes_params:
+            self.bots[bot_index] = self.create_bot(name='Bot', parameters=param.copy())
+            bot_index += 1
+            for j in range(self.new_children):
+                self.bots[bot_index] = self.create_bot(name='Bot', parameters=param.copy())
+                self.bots[bot_index].mutate()
+                bot_index += 1
+
     def main(self):
         for gen in range(self.n_generations):
             self.logger.info('Running generation number {} with total {} bots'.format(gen, len(self.bots)))
             scores = self.get_high_scores()[:int(self.survival_rate * self.n_children)]
             survived_bots_indexes = set([value[0] for value in scores])
             self.logger.info("The highest score obtained is: {}".format(scores[0][1]))
-            new_bots = list()
-            child_index = 0
-            self.logger.info("Scores are {}".format(scores))
-            for index, bot in enumerate(self.bots):
-                if index in survived_bots_indexes:
-                    new_bots.append(bot)
-                    bot_matrix = bot.matrix.copy(deep=True)
-                    # TODO: Check working for NN and CNN
-                    for _ in range(self.new_children):
-                        new_bot = self.create_bot(name='bot number ' + str(child_index+1),
-                                                  parameters=bot_matrix.copy(deep=True))
-                        new_bot.mutate()
-                        new_bots.append(new_bot)
-                        child_index += 1
-            self.bots = new_bots.copy()
-        return None
+            self.create_new_bots(indexes=survived_bots_indexes)
 
 
 if __name__ == "__main__":
-    optimize = Optimizer(n_generations=1000, n_children=10, convolutions=1, network='CNN',disable_game_logs= True, disable_optimizer_logs = True, disable_model_logs =True)
+    optimize = Optimizer(n_generations=1000, n_children=10, convolutions=1, network='CNN', disable_game_logs=True,
+                         disable_optimizer_logs=False, disable_model_logs=True)
     optimize.main()
