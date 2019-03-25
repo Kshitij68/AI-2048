@@ -10,7 +10,7 @@ from ga_2048.utils import get_logger
 
 class CNNBot:
 
-    def __init__(self, name, parameters=None, disable_logs=True, mutation=0.3, convolutions=1, seed=None):
+    def __init__(self, name, parameters=None, disable_logs=False, mutation=0.03, convolutions=1, seed=None):
         self.seed = seed
         self.name = name
         self.mutation = mutation
@@ -47,7 +47,7 @@ class CNNBot:
             if self.parameters is None:
                 matrix_1 = self.generate_random_matrix()
                 matrix_2 = self.generate_random_matrix()
-                self.parameters = [matrix_1, matrix_2]
+                self.parameters = np.array([matrix_1, matrix_2])
             else:
                 matrix_1 = self.parameters[0]
                 matrix_2 = self.parameters[1]
@@ -62,7 +62,7 @@ class CNNBot:
 
             if self.parameters is None:
                 matrix_1 = self.generate_random_matrix()
-                self.parameters = [matrix_1]
+                self.parameters = np.array([matrix_1])
             else:
                 matrix_1 = self.parameters[0]
 
@@ -103,14 +103,22 @@ class CNNBot:
         return [self.mapping[value[0]] for value in output]
 
     def mutate(self):
+        change = False
+        current = self.show_matrix().copy()
         for a, convolution in enumerate(self.parameters):
             for b, row in enumerate(convolution):
                 for c, col in enumerate(row):
                     if self.mutation >= np.random.random():
+                        change = True
                         self.logger.info("Mutating")
                         self.parameters[a][b][c][0][0] = random.uniform(-1, 1)
 
+        if change:
+            if self.show_matrix() == current:
+                raise ValueError("The values did not correctly copied")
+
     def show_matrix(self):
+
         if self.convolutions == 1:
             return [
                 self.parameters[0][0][0][0][0],
@@ -120,3 +128,6 @@ class CNNBot:
             ]
         else:
             raise NotImplementedError()
+
+    def copy(self):
+        return self.parameters.copy()
