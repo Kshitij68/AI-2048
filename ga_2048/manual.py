@@ -5,9 +5,9 @@ from ga_2048.simulator import Game
 
 
 # TODO: Add Asserts and test cases
-# TODO: The CNN has to become much faster to train fast
+# TODO: The CNN has to become much faster to train fast (Its barely learning anything right now)
 # TODO: The model is broken for Neural Networks. Fix to make both work
-
+# TODO: Read about CNN architectures and parameters involved again.
 
 class Optimizer:
 
@@ -56,6 +56,7 @@ class Optimizer:
         for index, child in enumerate(self.bots):
             game = Game(show=False, disable_logs=self.disable_game_logs)
             while True:
+                # TODO: This approach is not viable for learning purposes. Make relatively complex architecture
                 prediction = self.bots[index].predict(game.tiles.transpose())
                 output = game.run(prediction[0])
                 if output is not None:
